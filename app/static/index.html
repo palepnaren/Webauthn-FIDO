@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title></title>
+    <link rel="stylesheet" href="css/milligram.min.css">
+    <style>
+        html,
+        body,
+        .container,
+        .row {
+            height: 100%;
+        }
+
+        .formcontainer {
+            background: #f0f0f0;
+            padding: 15px;
+        }
+
+        .formcontainer form,
+        .formcontainer fieldset {
+            margin: 0;
+        }
+
+        .secretcontainer {
+            background: #f0f0f0;
+            padding: 15px;
+        }
+
+        #registerContainer,
+        #mainContainer {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row row-center">
+
+            <div class="column" id="registerContainer">
+                <div class="formcontainer register">
+                    <h3>Register page</h3>
+                    <form id="register">
+                        <fieldset>
+                            <label for="name">name</label>
+                            <input type="text" name="name">
+                            <label for="username">username</label>
+                            <input type="text" name="username">
+
+                            <input class="button-primary" type="submit" value="Register" onclick="">
+                        </fieldset>
+                    </form>
+
+                    <a href="#" id="toLogin">Already registered? Login page</a>
+                </div>
+            </div>
+
+            <div class="column" id="loginContainer">
+                <div class="formcontainer login">
+                    <h3>Login page</h3>
+                    <form id="login">
+                        <fieldset>
+                            <label for="username">username</label>
+                            <input type="text" name="username">
+
+                            <input class="button-primary" type="submit" value="Login">
+                        </fieldset>
+                    </form>
+
+                    <a href="#" id="toRegistration">Not registered yet? Registration</a>
+                </div>
+            </div>
+
+            <div class="column" id="mainContainer">
+
+                <div class="secretcontainer">
+                    <h3>Hey <span id="name"></span>!</h3>
+                    <div id="theSecret"></div>
+                    <button id="logoutButton">Logout</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="js/jquery-3.2.1.min.js"></script>
+    <script src="js/helpers.js"></script>
+    <script src="js/base64url-arraybuffer.js"></script>
+    <script src="js/view.js"></script>
+    <script src="js/password.auth.js"></script>
+    <script src="js/webauthn.auth.js"></script>
+    <script>
+        $(document).ready(() => {
+            checkIfLoggedIn()
+                .then((response) => {
+                    if (response)
+                        return loadMainContainer()
+                })
+        })
+    </script>
+    <script src="../node_modules/cbor/lib/cbor.js"></script>
+    <script>
+
+        // function createCreds() {
+            // var randomChallengeBuffer = new Uint8Array(32);
+            // window.crypto.getRandomValues(randomChallengeBuffer);
+
+            // var base64id = 'MIIBkzCCATigAwIBAjCCAZMwggE4oAMCAQIwggGTMII='
+            // var idBuffer = Uint8Array.from(window.atob(base64id), c => c.charCodeAt(0))
+
+            // var publicKey = {
+            //     challenge: randomChallengeBuffer,
+            //     hashAlgorithm: "SHA-256",
+            //     origin: "https://webauthn.bin.coffee",
+
+            //     rp: { name: "FIDO Example Corporation" },
+
+            //     user: {
+            //         id: idBuffer,
+            //         name: "alice@example.com",
+            //         displayName: "Alice von Wunderland"
+            //     },
+
+            //     attestation: 'direct',
+
+            //     authenticatorSelection: {
+            //         authenticatorAttachment: "platform",
+            //         requiredResidentKey: false,
+            //         userVerification: "preferred"
+            //     },
+
+            //     pubKeyCredParams: [
+            //         { type: 'public-key', alg: -7 }, // ES256
+            //         //{ type: 'public-key', alg: -257 }  // RS256
+            //     ]
+            // }
+
+            // navigator.credentials.create({ publicKey })
+            //     .then((newCredentialInfo) => {
+            //         console.log('SUCCESS', newCredentialInfo)
+            //     })
+            //     .catch((error) => {
+            //         console.log('FAIL', error)
+            //     })
+
+
+        // }
+
+        // var randomChallengeBuffer = new Uint8Array(32);
+        // const publicKeyCredentialCreationOptions = {
+        //     challenge: randomChallengeBuffer,
+        //     // hashAlgorithm: "SHA-256",
+        //     // origin: "https://webauthn.bin.coffee",
+        //     rp: {
+        //         name: "Duo Security",
+        //         id: "localhost",
+        //     },
+        //     user: {
+        //         id: Uint8Array.from(
+        //             "UZSL85T9AFC", c => c.charCodeAt(0)),
+        //         name: "naren@webauthn.guide",
+        //         displayName: "naren",
+        //     },
+        //     pubKeyCredParams: [{ alg: -257, type: "public-key" }],
+        //     authenticatorSelection: {
+        //         authenticatorAttachment: "platform",
+        //         userVerification: "required"
+        //     },
+        //     // timeout: 60000,
+        //     attestation: "direct"
+        // };
+
+        //  navigator.credentials.create({
+        //     publicKey: publicKeyCredentialCreationOptions
+        // }).then(creds => {
+        //     console.log(creds);
+        //     const utf8Decoder  = new TextDecoder('utf-8');
+        //     const decodedClientData = utf8Decoder.decode(creds.response.clientDataJSON);
+        //     const clientDataObj = JSON.parse(decodedClientData);
+        //     console.log(clientDataObj);
+
+        //     // var bytes = new Uint8Array(creds.response.attestationObject);
+        //     // var jasonString = Buffer.from(bytes).toString('utf8');
+        //     // console.log(bytes.length);
+
+            
+            
+           
+        //     // $.ajax({
+        //     //     type:'GET',
+        //     //     url: '/webauthn/parseAttest?data='+creds.response.attestationObject,
+        //     //     success: function(data) {
+        //     //         console.log(data);
+        //     //     },
+        //     //     error: function(error) {
+        //     //         console.log(error);
+        //     //     }
+        //     // })
+
+           
+        // });
+
+
+        // setTimeout( () =>{
+           
+        // }, 10000);
+
+        
+
+    </script>
+</body>
+
+</html>
